@@ -1,0 +1,64 @@
+{
+  "name": "philosophy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "哲学学习 Monorepo：微信小程序 + 管理后台 + API",
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:weapp": "yarn build:weapp --watch",
+    "build:weapp": "taro build --type weapp",
+    "dev:api": "yarn workspace @philosophy/api dev",
+    "dev:admin": "yarn workspace @philosophy/admin dev",
+    "dev": "yarn dev:api & yarn dev:admin",
+    "build:api": "yarn workspace @philosophy/api build",
+    "build:admin": "yarn workspace @philosophy/admin build",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "build:h5": "taro build --type h5",
+    "dev:h5": "yarn build:h5 --watch"
+  },
+  "browserslist": [
+    "last 3 versions",
+    "Android >= 4.1",
+    "ios >= 8"
+  ],
+  "author": "",
+  "dependencies": {
+    "@babel/runtime": "^7.24.4",
+    "@tarojs/components": "4.1.11",
+    "@tarojs/helper": "4.1.11",
+    "@tarojs/plugin-platform-weapp": "4.1.11",
+    "@tarojs/plugin-platform-h5": "4.1.11",
+    "@tarojs/plugin-framework-react": "4.1.11",
+    "@tarojs/react": "4.1.11",
+    "@tarojs/runtime": "4.1.11",
+    "@tarojs/shared": "4.1.11",
+    "@tarojs/taro": "4.1.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.4",
+    "@babel/preset-react": "^7.24.1",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.13",
+    "@tarojs/cli": "4.1.11",
+    "@tarojs/webpack5-runner": "4.1.11",
+    "@types/react": "^18.3.3",
+    "@types/webpack-env": "^1.18.5",
+    "babel-preset-taro": "4.1.11",
+    "eslint": "^8.57.0",
+    "eslint-config-taro": "4.1.11",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "postcss": "^8.4.38",
+    "react-refresh": "^0.14.0",
+    "sass": "^1.75.0",
+    "typescript": "^5.4.5",
+    "webpack": "5.91.0"
+  }
+}

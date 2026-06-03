@@ -1,0 +1,61 @@
+.philosopher-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 12px;
+  box-sizing: border-box;
+
+  &__avatar-wrap {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 16px;
+  }
+
+  &__avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #e8e4dc;
+  }
+
+  &__avatar-placeholder {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c4b8a8 0%, #8b7d6b 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__initial {
+    font-size: 48px;
+    font-weight: 500;
+    color: #fff;
+  }
+
+  &__name {
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c2c2c;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  &__name-en {
+    font-size: 20px;
+    color: #8a8278;
+    text-align: center;
+    margin-bottom: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  &__era {
+    font-size: 20px;
+    color: #b0a898;
+    text-align: center;
+  }
+}

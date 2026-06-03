@@ -1,0 +1,2 @@
+services/api/uploads/*
+!services/api/uploads/.gitkeep

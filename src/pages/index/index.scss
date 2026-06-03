@@ -1,0 +1,60 @@
+.index-page {
+  min-height: 100vh;
+  background-color: #f7f5f0;
+  padding-bottom: 48px;
+  box-sizing: border-box;
+
+  &__header {
+    padding: 48px 32px 32px;
+    text-align: center;
+  }
+
+  &__title {
+    display: block;
+    font-size: 48px;
+    font-weight: 700;
+    color: #2c2c2c;
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+  }
+
+  &__subtitle {
+    display: block;
+    font-size: 26px;
+    color: #8a8278;
+    letter-spacing: 2px;
+  }
+
+  &__grid {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 16px;
+  }
+
+  &__grid-item {
+    width: 33.33%;
+    box-sizing: border-box;
+  }
+
+  &__status {
+    padding: 80px 32px;
+    text-align: center;
+  }
+
+  &__status-text {
+    font-size: 28px;
+    color: #8a8278;
+
+    &--error {
+      color: #c45c5c;
+    }
+  }
+
+  &__retry {
+    display: block;
+    margin-top: 24px;
+    font-size: 26px;
+    color: #6b6358;
+    text-decoration: underline;
+  }
+}

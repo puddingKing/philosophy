@@ -1,0 +1,15 @@
+node_modules
+dist
+.temp
+.git
+*.md
+apps/miniprogram
+src
+config
+types
+babel.config.js
+tsconfig.json
+project.config.json
+services/api/data
+services/api/uploads/*
+!services/api/uploads/.gitkeep
