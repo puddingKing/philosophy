@@ -36,8 +36,7 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
     volumes:
       - uploads:/app/services/api/uploads
-    ports:
-      - "3000:3000"
+    # 端口映射见 docker-compose.prod.yml（生产）或自行添加（开发）
 
   admin:
     build:

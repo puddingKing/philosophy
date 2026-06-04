@@ -1,0 +1,14 @@
+# 生产环境 Docker Compose 覆盖配置
+# 用法: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  postgres:
+    ports: []
+
+  api:
+    ports:
+      - "127.0.0.1:3001:3000"
+
+  admin:
+    ports:
+      - "127.0.0.1:8081:80"

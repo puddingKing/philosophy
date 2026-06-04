@@ -8,6 +8,9 @@ import type {
 
 const TOKEN_KEY = 'philosophy_jwt_token'
 
+/** 开发环境直连 127.0.0.1:3000；生产环境走同域 Nginx 反代 */
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '')
+
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
 }
@@ -25,6 +28,10 @@ let onUnauthorized: AuthHandler | null = null
 
 export function setUnauthorizedHandler(handler: AuthHandler) {
   onUnauthorized = handler
+}
+
+function apiUrl(path: string) {
+  return `${API_BASE}${path}`
 }
 
 async function request<T>(
@@ -47,7 +54,14 @@ async function request<T>(
     headers['Content-Type'] = 'application/json'
   }
 
-  const res = await fetch(path, { ...options, headers })
+  let res: Response
+  try {
+    res = await fetch(apiUrl(path), { ...options, headers })
+  } catch {
+    throw new Error(
+      `无法连接 API（${API_BASE || '同域'}）。请确认 yarn dev:api 已启动在 3000 端口。`,
+    )
+  }
 
   if (res.status === 401 && auth) {
     clearAuth()

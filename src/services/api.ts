@@ -1,8 +1,8 @@
 import Taro from '@tarojs/taro'
 import type { Philosopher } from '@/types/philosopher'
 
-/** 开发时在 project.config.json 关闭 urlCheck；真机调试请改为电脑局域网 IP */
-export const API_BASE_URL = 'http://127.0.0.1:3000'
+/** 生产环境 API 地址；开发时改为 http://127.0.0.1:3000 */
+export const API_BASE_URL = 'https://www.luca0527.art'
 
 export async function fetchPhilosophers(): Promise<Philosopher[]> {
   const res = await Taro.request<Philosopher[]>({

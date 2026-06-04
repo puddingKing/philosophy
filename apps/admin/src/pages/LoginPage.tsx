@@ -63,7 +63,7 @@ export default function LoginPage() {
         </Form>
 
         <Text type="secondary" style={{ display: 'block', marginTop: 24, fontSize: 12 }}>
-          默认账号见部署文档（开发环境：admin / admin123）
+          默认账号：admin / 见 services/api/.env 中 ADMIN_PASSWORD
         </Text>
       </Card>
     </div>

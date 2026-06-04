@@ -5,27 +5,34 @@ import { requireAuth } from '../middleware/auth'
 
 export async function authRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: LoginInput }>('/api/auth/login', async (request, reply) => {
-    const { username, password } = request.body || {}
+    try {
+      const { username, password } = request.body || {}
 
-    if (!username || !password) {
-      return reply.status(400).send({ error: 'username and password are required' })
+      if (!username || !password) {
+        return reply.status(400).send({ error: 'username and password are required' })
+      }
+
+      const user = await findUserByUsername(username)
+      if (!user || !(await verifyPassword(password, user.passwordHash))) {
+        return reply.status(401).send({ error: 'Invalid username or password' })
+      }
+
+      const token = fastify.jwt.sign(
+        { sub: user.id, username: user.username },
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+      )
+
+      const response: AuthResponse = {
+        token,
+        user: { id: user.id, username: user.username },
+      }
+      return response
+    } catch (err) {
+      fastify.log.error(err)
+      return reply.status(500).send({
+        error: err instanceof Error ? err.message : 'Internal Server Error',
+      })
     }
-
-    const user = await findUserByUsername(username)
-    if (!user || !(await verifyPassword(password, user.passwordHash))) {
-      return reply.status(401).send({ error: 'Invalid username or password' })
-    }
-
-    const token = fastify.jwt.sign(
-      { sub: user.id, username: user.username },
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
-    )
-
-    const response: AuthResponse = {
-      token,
-      user: { id: user.id, username: user.username },
-    }
-    return response
   })
 
   fastify.get('/api/auth/me', { preHandler: requireAuth }, async (request, reply) => {

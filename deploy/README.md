@@ -1,105 +1,133 @@
-# 部署指南
+# 服务器部署指南
 
-## Docker Compose 一键部署（推荐）
+## 架构（路径方案）
 
-### 1. 准备环境变量
+```text
+https://yourdomain.com/admin/   → 管理后台（Docker :8081）
+https://yourdomain.com/api/     → REST API（Docker :3001）
+https://yourdomain.com/uploads/ → 头像文件
+```
+
+主机 **Nginx** 负责 HTTPS，反代到 Docker 容器。
+
+---
+
+## 一键部署（推荐）
+
+在**本地**项目目录执行：
 
 ```bash
+# 1. 准备环境变量（或让脚本自动生成）
 cp .env.example .env
-# 编辑 .env，至少修改 JWT_SECRET 和 ADMIN_PASSWORD
+# 编辑 .env，设置 PUBLIC_API_URL=https://你的域名 等
+
+# 2. 远程部署
+chmod +x deploy/deploy.sh
+DEPLOY_HOST=root@你的服务器IP \
+DOMAIN=你的域名.com \
+./deploy/deploy.sh
 ```
 
-### 2. 启动全部服务
+脚本会自动：
+
+1. 同步代码到服务器 `/opt/philosophy`
+2. 安装 Docker（若未安装）
+3. `docker compose up -d --build` 启动 PostgreSQL + API + Admin
+4. 安装 Nginx 配置（`deploy/nginx/philosophy.conf`）
+
+---
+
+## 服务器前置条件
+
+- Linux 服务器（Ubuntu 20.04+ / Debian 11+ 等）
+- 已开放端口：**80、443**（Nginx HTTPS）
+- 域名 **A 记录** 已指向服务器 IP
+- **SSL 证书**已配置（Let's Encrypt / 云厂商证书）
+  - 部署脚本会写入 Nginx 配置，但证书路径需按 [`deploy/nginx/philosophy.conf`](nginx/philosophy.conf) 修改
+
+---
+
+## 手动部署（在服务器上）
 
 ```bash
-docker compose up -d --build
+# 上传代码到 /opt/philosophy 后
+cd /opt/philosophy
+cp .env.example .env   # 编辑配置
+chmod +x deploy/deploy.sh
+DOMAIN=你的域名.com ./deploy/deploy.sh --local
 ```
 
-服务地址：
+---
 
-| 服务 | 地址 |
-|------|------|
-| API | http://localhost:3000 |
-| 管理后台 | http://localhost:8080 |
-| PostgreSQL | localhost:5432 |
+## Nginx 配置
 
-### 3. 登录管理后台
+### 标准 Nginx（无宝塔）
 
-- 地址：http://localhost:8080
-- 默认账号：`admin` / `admin123`（或 `.env` 中配置的值）
+模板：[`deploy/nginx/philosophy.conf`](nginx/philosophy.conf)
 
-首次启动 API 会自动：
+| 路径 | 转发目标 |
+|------|----------|
+| `/api/` | `127.0.0.1:3001` |
+| `/uploads/` | `127.0.0.1:3001` |
+| `/admin/` | `127.0.0.1:8081` |
 
-1. 执行数据库迁移（建表）
-2. 创建管理员账号（若 users 表为空）
-3. 导入 8 位哲学家 seed 数据
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
 
-### 4. 小程序对接
+### 宝塔面板（OpenCloudOS / 已有 WordPress 站点）
 
-将 `src/services/api.ts` 中的 `API_BASE_URL` 改为你的 API 公网地址：
+**对外流量由宝塔 Nginx 处理**，不要改 `/etc/nginx/conf.d/`。
+
+1. 编辑站点配置：`/www/server/panel/vhost/nginx/<域名>.conf`
+2. 将 [`deploy/nginx/baota-philosophy-locations.conf`](nginx/baota-philosophy-locations.conf) 中的 `location` 块插入 `server { }` 内，放在 WordPress `root` / PHP 规则**之前**
+3. 重载：
+
+```bash
+/www/server/nginx/sbin/nginx -t && /www/server/nginx/sbin/nginx -s reload
+```
+
+验证：
+
+```bash
+curl https://www.luca0527.art/api/health    # {"status":"ok"}
+curl -I https://www.luca0527.art/admin/     # 200
+```
+
+---
+
+## 小程序配置
+
+部署完成后，修改 [`src/services/api.ts`](../src/services/api.ts)：
 
 ```typescript
-export const API_BASE_URL = 'https://api.yourdomain.com'
+export const API_BASE_URL = 'https://你的域名.com'
 ```
 
-在微信公众平台配置 request 合法域名。
+重新编译小程序 `yarn build:weapp`，并在微信公众平台配置 **request 合法域名** 为你的域名。
 
 ---
 
-## 本地开发（不使用 Docker 跑 API）
-
-### 仅启动 PostgreSQL
+## 常用运维命令
 
 ```bash
-docker compose up -d postgres
-```
+# 查看日志
+docker compose -f docker-compose.yml -f docker-compose.prod.yml logs -f api
 
-### 配置 API 环境变量
+# 重启服务
+docker compose -f docker-compose.yml -f docker-compose.prod.yml restart
 
-```bash
-cp services/api/.env.example services/api/.env
-```
-
-### 启动服务
-
-```bash
-yarn install
-yarn dev:api      # http://localhost:3000
-yarn dev:admin    # http://localhost:5173（Vite 已代理 /api）
-yarn dev:weapp    # 微信小程序
+# 重置管理员密码（在服务器项目目录）
+docker compose exec api node -e "..."  # 或本地 yarn reset-admin 连远程 DB
 ```
 
 ---
 
-## 生产环境建议
+## 环境变量说明
 
-1. **JWT_SECRET**：使用 32 位以上随机字符串
-2. **ADMIN_PASSWORD**：首次部署后立即修改默认密码（需后续支持改密或手动更新数据库）
-3. **PUBLIC_API_URL**：设为 API 对外 HTTPS 地址，确保头像 URL 正确
-4. **CORS_ORIGIN**：仅允许管理后台域名
-5. **PostgreSQL**：使用托管数据库或持久化 volume
-6. **头像存储**：当前为本地 `uploads/`，生产可考虑 OSS/COS + CDN
-7. **HTTPS**：在 API / Admin 前加 Nginx 或云负载均衡终止 SSL
-
----
-
-## 架构
-
-```mermaid
-flowchart LR
-  Admin["Admin Nginx :8080"]
-  API["API Fastify :3000"]
-  PG[("PostgreSQL")]
-  Mini["微信小程序"]
-
-  Admin -->|"/api proxy"| API
-  Mini -->|"GET /api/philosophers"| API
-  API --> PG
-  API --> Uploads["uploads volume"]
-```
-
-## 鉴权说明
-
-- **公开接口**：`GET /api/philosophers`、`GET /api/philosophers/:id`、`GET /api/health`
-- **需登录**：创建/编辑/删除哲学家、上传头像
-- **方式**：`POST /api/auth/login` 获取 JWT，请求头携带 `Authorization: Bearer <token>`
+| 变量 | 说明 |
+|------|------|
+| `PUBLIC_API_URL` | 必须是 `https://域名`（头像 URL 依赖） |
+| `CORS_ORIGIN` | 管理后台来源，路径方案填 `https://域名` |
+| `JWT_SECRET` | 随机长字符串 |
+| `ADMIN_PASSWORD` | 仅首次 seed 生效；之后用 `yarn reset-admin` |

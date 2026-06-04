@@ -28,7 +28,7 @@ cp services/api/.env.example services/api/.env
 
 # 4. 启动 API + 管理后台
 yarn dev:api      # http://localhost:3000
-yarn dev:admin    # http://localhost:5173
+yarn dev:admin    # http://localhost:5173（开发环境直连 127.0.0.1:3000，见 apps/admin/.env.development）
 
 # 5. 小程序
 yarn dev:weapp
