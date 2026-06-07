@@ -11,7 +11,7 @@ const config = {
     828: 1.81 / 2,
   },
   sourceRoot: 'src',
-  outputRoot: 'dist',
+  outputRoot: process.env.TARO_ENV === 'h5' ? 'dist-h5' : 'dist',
   plugins: ['@tarojs/plugin-framework-react'],
   defineConstants: {},
   copy: {
@@ -42,8 +42,12 @@ const config = {
     },
   },
   h5: {
-    publicPath: '/',
+    /** 生产环境挂载在 /app/，与 WordPress 根站点共存 */
+    publicPath: '/app/',
     staticDirectory: 'static',
+    router: {
+      mode: 'hash',
+    },
     postcss: {
       autoprefixer: {
         enable: true,

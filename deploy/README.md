@@ -3,6 +3,7 @@
 ## 架构（路径方案）
 
 ```text
+https://yourdomain.com/app/     → H5 网页版（静态文件 /opt/philosophy/h5/）
 https://yourdomain.com/admin/   → 管理后台（Docker :8081）
 https://yourdomain.com/api/     → REST API（Docker :3001）
 https://yourdomain.com/uploads/ → 头像文件
@@ -70,6 +71,7 @@ DOMAIN=你的域名.com ./deploy/deploy.sh --local
 | `/api/` | `127.0.0.1:3001` |
 | `/uploads/` | `127.0.0.1:3001` |
 | `/admin/` | `127.0.0.1:8081` |
+| `/app/` | `/opt/philosophy/h5/`（静态） |
 
 ```bash
 sudo nginx -t && sudo systemctl reload nginx
@@ -92,7 +94,30 @@ sudo nginx -t && sudo systemctl reload nginx
 ```bash
 curl https://www.luca0527.art/api/health    # {"status":"ok"}
 curl -I https://www.luca0527.art/admin/     # 200
+curl -I https://www.luca0527.art/app/       # 200
 ```
+
+---
+
+## H5 网页版
+
+本地开发：
+
+```bash
+yarn dev:h5
+# 浏览器打开 http://localhost:10086/app/
+```
+
+生产构建与部署：
+
+```bash
+yarn build:h5          # 产物在 dist-h5/
+# 一键部署脚本会自动 build 并 rsync 到服务器 /opt/philosophy/h5/
+```
+
+Nginx 片段见 [`deploy/nginx/philosophy-h5.conf`](nginx/philosophy-h5.conf)（已合并进宝塔模板 [`baota-philosophy-locations.conf`](nginx/baota-philosophy-locations.conf)）。
+
+访问地址：`https://你的域名/app/`（Hash 路由，无需额外 SPA fallback）。
 
 ---
 

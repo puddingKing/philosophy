@@ -78,11 +78,22 @@ sync_files() {
   rsync -avz --delete \
     --exclude node_modules \
     --exclude dist \
+    --exclude dist-h5 \
     --exclude .git \
     --exclude services/api/uploads \
     --exclude '*.local' \
     "$PROJECT_DIR/" "$DEPLOY_HOST:$REMOTE_DIR/"
   scp "$PROJECT_DIR/.env" "$DEPLOY_HOST:$REMOTE_DIR/.env"
+}
+
+build_and_sync_h5() {
+  log "构建 H5..."
+  (cd "$PROJECT_DIR" && yarn build:h5)
+
+  log "同步 H5 静态文件到 $DEPLOY_HOST:$REMOTE_DIR/h5 ..."
+  ssh "$DEPLOY_HOST" "mkdir -p $REMOTE_DIR/h5"
+  rsync -avz --delete \
+    "$PROJECT_DIR/dist-h5/" "$DEPLOY_HOST:$REMOTE_DIR/h5/"
 }
 
 install_nginx_config() {
@@ -124,10 +135,12 @@ print_summary() {
   log "=========================================="
   log "部署完成"
   if [[ -n "$DOMAIN" ]]; then
+    log "  H5 网页:  https://${DOMAIN}/app/"
     log "  管理后台: https://${DOMAIN}/admin/"
     log "  API:      https://${DOMAIN}/api/health"
     log "  小程序 API_BASE_URL: https://${DOMAIN}"
   else
+    log "  H5 网页:  http://服务器IP/app/"
     log "  管理后台: http://服务器IP:8080/admin/"
     log "  API:      http://服务器IP:3000/api/health"
   fi
@@ -153,6 +166,7 @@ main() {
 
   install_docker_remote
   sync_files
+  build_and_sync_h5
   ssh "$DEPLOY_HOST" "cd $REMOTE_DIR && chmod +x deploy/deploy.sh && DOMAIN=${DOMAIN} ./deploy/deploy.sh --local"
   install_nginx_config
   print_summary
